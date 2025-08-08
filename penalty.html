@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>متنبئ ركلات الجزاء — المغرب (Melbet)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet"/>
+    <style>
+      body{font-family:"Montserrat",sans-serif;background:#121212;color:#fff;text-align:center;margin:0;padding:20px;min-height:100vh;display:flex;justify-content:center;align-items:center;direction:rtl}
+      body.modal-open{overflow:hidden}
+      .game-container{max-width:700px;width:100%;margin:0 auto;background:#1e1e1e;border-radius:15px;padding:25px;box-shadow:0 10px 30px rgba(0,0,0,.3);transform:translateY(0);transition:.3s;position:relative}
+      .game-container:hover{transform:translateY(-5px)}
+      h1{color:#ffcc00;margin-bottom:10px;font-weight:600;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+      .badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+      .badge{display:inline-block;padding:6px 10px;border-radius:8px;background:#064e3b;color:#a7f3d0;font-weight:700;font-size:13px}
+      .penalty-display{height:350px;margin:25px 0;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
+      .goal-container{width:100%;height:100%;display:flex;justify-content:center;align-items:center;position:relative}
+      .goal-svg{width:350px;height:230px;position:absolute;top:0}
+      .goal-frame{fill:none;stroke:#fff;stroke-width:8;stroke-linecap:round}
+      .goal-zone{fill:rgba(255,255,255,.1);stroke:rgba(255,255,255,.3);stroke-width:1;transition:.3s;border-radius:50%}
+      .goal-zone.winner{fill:rgba(0,204,102,.7);stroke:#00cc66;stroke-width:2;filter:drop-shadow(0 0 8px rgba(0,204,102,.7))}
+      .soccer-ball{position:absolute;width:50px;height:50px;bottom:50px;left:50%;transform:translateX(-50%);transition:transform 1s ease-in-out;z-index:10}
+      .result{font-size:20px;font-weight:600;color:#ffcc00;margin-bottom:12px;min-height:30px}
+      .bet-amount{font-size:20px;font-weight:600;color:#ffcc00;margin:10px 0;text-shadow:0 0 10px rgba(255,204,0,.3)}
+      .history-container{max-height:110px;overflow-y:auto;margin-bottom:20px;padding:10px;background:#2a2a2a;border-radius:10px}
+      .history{display:flex;flex-direction:column;gap:8px}
+      .history-item{padding:10px;border-radius:8px;display:flex;justify-content:space-between;background:rgba(255,204,0,.1);border-right:4px solid #ffcc00}
+      .history-result{font-weight:600}
+      .success{color:#00cc66}.fail{color:#ff4444}
+      .controls{margin-top:10px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
+      button{background:#ffcc00;color:#121212;border:none;padding:14px 30px;border-radius:8px;font-weight:600;cursor:pointer;transition:.3s;font-size:16px;letter-spacing:.3px;box-shadow:0 4px 6px rgba(0,0,0,.1);position:relative;overflow:hidden;width:220px}
+      button:hover{background:#ffdd33;transform:translateY(-3px);box-shadow:0 7px 14px rgba(0,0,0,.2)}
+      button:active{transform:translateY(1px)}
+      button:disabled{background:#444;color:#777;cursor:not-allowed;transform:none;box-shadow:none}
+      button::after{content:"";position:absolute;inset:0;background:linear-gradient(45deg,transparent 25%,rgba(255,255,255,.1) 50%,transparent 75%);background-size:400% 400%;opacity:0;transition:.5s}
+      button:hover::after{opacity:1;animation:shine 1.5s infinite}
+      input{padding:10px 20px;border-radius:8px;background:#333;color:#fff;border:none;font-size:16px;transition:.3s;box-shadow:0 2px 5px rgba(0,0,0,.2);width:240px;text-align:center}
+      input:invalid{border:2px solid #ff4444} input:valid{border:2px solid #00cc66} input:hover{background:#444}
+      label{display:block;margin-bottom:8px;font-weight:600;color:#ddd}
+      .hidden{display:none}
+      .id-form{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:20px}
+      .error-message{color:#ff4444;margin-top:5px;font-size:14px;min-height:20px}
+      .loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1000;opacity:0;visibility:hidden;transition:.3s}
+      .loading-overlay.active{opacity:1;visibility:visible}
+      .loading-spinner{width:50px;height:50px;border:5px solid rgba(255,204,0,.3);border-radius:50%;border-top-color:#ffcc00;animation:spin 1s ease-in-out infinite;margin-bottom:20px}
+      .loading-text{color:#ffcc00;font-size:18px;font-weight:600}
+      .how-to-use-btn{background:transparent;border:2px solid #ffcc00;color:#ffcc00;margin:0 auto 15px;width:90%;max-width:420px;white-space:nowrap}
+      .how-to-use-btn:hover{background:rgba(255,204,0,.1)}
+      .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;justify-content:center;align-items:center;z-index:1000;opacity:0;visibility:hidden;transition:.3s}
+      .modal-overlay.active{opacity:1;visibility:visible}
+      .modal-content{background:#1e1e1e;border-radius:15px;padding:30px;max-width:520px;width:90%;position:relative;transform:translateY(20px);transition:.3s;box-shadow:0 10px 30px rgba(0,0,0,.5);text-align:right}
+      .modal-overlay.active .modal-content{transform:translateY(0)}
+      .close-modal{position:absolute;top:15px;left:15px;font-size:24px;color:#aaa;cursor:pointer;transition:.3s}
+      .close-modal:hover{color:#ff4444}
+      .modal-title{color:#ffcc00;margin-bottom:14px;font-size:22px}
+      .modal-text{line-height:1.7;margin-bottom:10px}
+      .modal-text ol{padding-right:18px}
+      .modal-text li{margin-bottom:10px}
+      .modal-text strong{color:#ffcc00}
+      @keyframes shine{0%{background-position:100% 50%}100%{background-position:0% 50%}}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#1e1e1e;border-radius:4px}::-webkit-scrollbar-thumb{background:#ffcc00;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#ffdd33}
+    </style>
+  </head>
+  <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">جارٍ التحقق من المعرف...</div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal-content">
+        <span class="close-modal" id="close-modal">&times;</span>
+        <h3 class="modal-title">كيفية استخدام البوت</h3>
+        <div class="modal-text">
+          <ol>
+            <li><strong>أولًا:</strong> اضغط «الحصول على مبلغ الرهان» لمعرفة المبلغ المطلوب.</li>
+            <li><strong>يَجِب</strong> وضع رهانك على Melbet بالمبلغ المعروض أولًا، ثم اضغط «الحصول على الإشارة».</li>
+          </ol>
+          <p>هذه هي الطريقة الوحيدة لتحقيق الربح.</p>
+          <p>إذا أخذت إشارة ولم تضع الرهان للتحقق، فستكون الإشارة غير دقيقة لأن البوت لا يرى رهانك ولا يستطيع تحليل الإشارة الرابحة.</p>
+          <div class="badges" style="margin-top:10px;">
+            <span class="badge">المغرب</span>
+            <span class="badge">العملة: MAD</span>
+            <span class="badge">رمز ترويجي: MHS77</span>
+            <span class="badge">الحد الأدنى للإيداع: 50 MAD</span>
+            <span class="badge">الحد الأقصى للرهان لكل إشارة: 25 MAD</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-container">
+      <h1>متنبئ ركلات الجزاء — المغرب (Melbet)</h1>
+
+      <button class="how-to-use-btn" id="how-to-use-btn">كيفية استخدام البوت</button>
+
+      <div class="id-form" id="id-form">
+        <div class="setting-group">
+          <label for="user-id">أدخل معرف حساب Melbet الخاص بك</label>
+          <input type="text" id="user-id" pattern="\d{6,}" inputmode="numeric" placeholder="معرف Melbet (6 أرقام على الأقل)" required title="الرجاء إدخال 6 أرقام على الأقل"/>
+          <div class="error-message" id="error-message"></div>
+        </div>
+        <button id="verify-btn" disabled>تحقق من المعرف</button>
+      </div>
+
+      <div id="game-content" class="hidden">
+        <div class="penalty-display">
+          <div class="goal-container">
+            <svg class="goal-svg" viewBox="0 0 300 200" id="goal-svg">
+              <path d="M20 180 L20 20 L280 20 L280 180" class="goal-frame" />
+              <g>
+                <circle cx="55" cy="50" r="22" class="goal-zone" id="zone-1" />
+                <circle cx="115" cy="50" r="22" class="goal-zone" id="zone-2" />
+                <circle cx="185" cy="50" r="22" class="goal-zone" id="zone-3" />
+                <circle cx="245" cy="50" r="22" class="goal-zone" id="zone-4" />
+                <circle cx="55" cy="100" r="22" class="goal-zone" id="zone-5" />
+                <circle cx="115" cy="100" r="22" class="goal-zone" id="zone-6" />
+                <circle cx="185" cy="100" r="22" class="goal-zone" id="zone-7" />
+                <circle cx="245" cy="100" r="22" class="goal-zone" id="zone-8" />
+                <circle cx="55" cy="150" r="22" class="goal-zone" id="zone-9" />
+                <circle cx="115" cy="150" r="22" class="goal-zone" id="zone-10" />
+                <circle cx="185" cy="150" r="22" class="goal-zone" id="zone-11" />
+                <circle cx="245" cy="150" r="22" class="goal-zone" id="zone-12" />
+              </g>
+            </svg>
+            <img src="https://pics.clipartpng.com/Soccer_Ball_PNG_Clip_Art-1361.png" id="soccer-ball" class="soccer-ball" alt="Soccer Ball"/>
+          </div>
+        </div>
+
+        <div class="result" id="result">احصل على إشارتك</div>
+
+        <div class="bet-amount hidden" id="bet-amount-container">
+          قيمة رهانك: <span id="bet-amount">0</span> MAD
+        </div>
+
+        <div class="history-container">
+          <div class="history" id="history"></div>
+        </div>
+
+        <div class="controls">
+          <button id="get-bet-btn" onclick="getBetAmount()">الحصول على مبلغ الرهان</button>
+          <button id="predict-btn" onclick="getPrediction()" disabled>الحصول على الإشارة</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // إعدادات عامة
+      const CURRENCY = "MAD";
+      const MAX_STAKE = 25;
+      const MIN_STAKE = 5;
+
+      // عناصر
+      const idForm = document.getElementById("id-form");
+      const gameContent = document.getElementById("game-content");
+      const userIdInput = document.getElementById("user-id");
+      const verifyBtn = document.getElementById("verify-btn");
+      const errorMessage = document.getElementById("error-message");
+      const resultElement = document.getElementById("result");
+      const betAmountContainer = document.getElementById("bet-amount-container");
+      const betAmountElement = document.getElementById("bet-amount");
+      const historyElement = document.getElementById("history");
+      const predictButton = document.getElementById("predict-btn");
+      const getBetButton = document.getElementById("get-bet-btn");
+      const howToUseBtn = document.getElementById("how-to-use-btn");
+      const modalOverlay = document.getElementById("modal-overlay");
+      const closeModal = document.getElementById("close-modal");
+      const goalSvg = document.getElementById("goal-svg");
+      const soccerBall = document.getElementById("soccer-ball");
+
+      // حالة
+      const gameState = {
+        userId: null,
+        betAmount: 0,
+        history: [],
+        isRunning: false,
+        betGenerated: false,
+        fixedPrediction: null,
+      };
+
+      // تفعيل زر التحقق فقط عند صحة الـID (6+ أرقام)
+      function isValidId(v){ return /^\d{6,}$/.test(v); }
+      userIdInput.addEventListener("input", function(){
+        this.value = this.value.replace(/\D/g, "");
+        const ok = isValidId(this.value);
+        verifyBtn.disabled = !ok;
+        errorMessage.textContent = ok ? "" : "أدخل 6 أرقام على الأقل";
+      });
+
+      // نافذة "كيفية الاستخدام"
+      howToUseBtn.addEventListener("click", () => { document.body.classList.add("modal-open"); modalOverlay.classList.add("active"); });
+      closeModal.addEventListener("click", () => { document.body.classList.remove("modal-open"); modalOverlay.classList.remove("active"); });
+      modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) { document.body.classList.remove("modal-open"); modalOverlay.classList.remove("active"); } });
+
+      // التحقق من المعرف
+      verifyBtn.addEventListener("click", () => {
+        if (userIdInput.validity.valid) {
+          localStorage.setItem("melbetId", userIdInput.value.trim());
+          // "Загрузка"
+          const overlay = document.createElement('div');
+          overlay.className = 'loading-overlay active';
+          overlay.innerHTML = '<div class="loading-spinner"></div><div class="loading-text">جارٍ التحقق...</div>';
+          document.body.appendChild(overlay);
+          setTimeout(() => {
+            overlay.remove();
+            gameState.userId = userIdInput.value;
+            idForm.remove();
+            gameContent.classList.remove("hidden");
+            errorMessage.textContent = "";
+          }, 1500);
+        } else {
+          errorMessage.textContent = "المعرف يجب أن يحتوي على 6 أرقام على الأقل";
+        }
+      });
+
+      // تعبئة ID من ?uid أو localStorage
+      (function(){
+        const p = new URLSearchParams(location.search);
+        const qid = p.get("uid") || localStorage.getItem("melbetId");
+        if (qid && /^\d{6,}$/.test(qid)) {
+          userIdInput.value = qid;
+          userIdInput.dispatchEvent(new Event("input"));
+        }
+      })();
+
+      function resetRound() {
+        const prev = document.querySelector(".goal-zone.winner");
+        if (prev) prev.classList.remove("winner");
+        soccerBall.style.transform = "translateX(-50%) translateY(0) scale(1)";
+        resultElement.textContent = "احصل على إشارتك";
+      }
+
+      // توليد مبلغ الرهان (بين 5 و 25 MAD)
+      function getBetAmount() {
+        if (gameState.isRunning) return;
+        resetRound();
+        getBetButton.disabled = true;
+        getBetButton.textContent = "جارٍ التوليد...";
+        setTimeout(() => {
+          const rnd = Math.floor(Math.random() * (MAX_STAKE - MIN_STAKE + 1)) + MIN_STAKE;
+          gameState.betAmount = rnd;
+          betAmountElement.textContent = gameState.betAmount.toString();
+          betAmountContainer.classList.remove("hidden");
+          predictButton.disabled = false;
+          getBetButton.textContent = "الحصول على مبلغ الرهان";
+          getBetButton.disabled = false;
+          gameState.betGenerated = true;
+        }, 800);
+      }
+
+      // توليد الإشارة (اختيار منطقة فوز)
+      function getPrediction() {
+        if (gameState.isRunning || !gameState.betGenerated) return;
+        gameState.isRunning = true;
+        predictButton.disabled = true;
+        getBetButton.disabled = true;
+        predictButton.textContent = "الذكاء الاصطناعي يُحلّل...";
+        resultElement.textContent = "جارٍ التحليل...";
+
+        const winningZone = gameState.fixedPrediction || Math.floor(Math.random() * 12) + 1;
+
+        setTimeout(() => {
+          const zoneElement = document.getElementById(`zone-${winningZone}`);
+          const ballRect = soccerBall.getBoundingClientRect();
+          const zoneRect = zoneElement.getBoundingClientRect();
+          const targetX = zoneRect.left + zoneRect.width/2 - (ballRect.left + ballRect.width/2);
+          const targetY = zoneRect.top + zoneRect.height/2 - (ballRect.top + ballRect.height/2);
+          soccerBall.style.transform = `translate(${targetX}px, ${targetY}px) scale(0.6)`;
+
+          setTimeout(() => {
+            zoneElement.classList.add("winner");
+            resultElement.textContent = "سدّد إلى هذه المنطقة";
+            addToHistory(winningZone);
+          }, 800);
+
+          setTimeout(() => {
+            predictButton.disabled = true;
+            predictButton.textContent = "الحصول على الإشارة";
+            getBetButton.disabled = false;
+            betAmountContainer.classList.add("hidden");
+            gameState.betGenerated = false;
+            gameState.isRunning = false;
+          }, 2000);
+        }, 1200);
+      }
+
+      function addToHistory(zone) {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `<span>الإشارة: المنطقة ${zone}</span><span class="history-result success">فعّالة</span>`;
+        historyElement.insertBefore(item, historyElement.firstChild);
+      }
+
+      // أدوات من الكونسول
+      window.setFixedPrediction = function (zone) {
+        if (zone < 1 || zone > 12) return console.error("المنطقة يجب أن تكون من 1 إلى 12");
+        gameState.fixedPrediction = zone;
+        console.log("تم التعيين — المنطقة التالية:", zone);
+      };
+      window.resetPrediction = function () {
+        gameState.fixedPrediction = null;
+        console.log("تمت الإعادة — العودة للاختيار العشوائي");
+      };
+    </script>
+  </body>
+</html>
